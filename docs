@@ -1,0 +1,180 @@
+API Documentation
+
+BaseURL: http://localhost:4000
+
+1. Get All Movies
+    Endpoint: /movies
+    Method: "GET"
+    Headers: { Content-Type: application.json }
+    Authentication: Nil
+    Response Model: [
+              {
+                "id": string,
+                "name": string,
+                "genre": string,
+                "rating": string,
+                "plot": string
+                "released": bool
+              }
+            ]
+    Sample Response: [
+              {
+                "id": "908",
+                "name": "Silicon valley",
+                "genre": "Comedy",
+                "rating": "4.5",
+                "plot": "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.",
+                "released": true
+              },
+              ...
+            ]
+    Code: 200
+    Status: Success
+
+2. Get Movie by it's Id
+Endpoint: /movie/{id}
+    Params: id
+    Method: "GET"
+    Headers: { Content-Type: application.json }
+    Authentication: Nil
+    Response Model: {
+                      "code": int,
+                      "status": string,
+                      "data": {
+                        "id": string,
+                        "name": string,
+                        "genre": string,
+                        "rating": string,
+                        "plot": string,
+                        "released": bool
+                      }
+                    }
+    Sample Response: {
+                       "code": 200,
+                       "status": "SUCCESS",
+                       "data": {
+                         "id": "908",
+                         "name": "Silicon valley",
+                         "genre": "Comedy",
+                         "rating": "4.5",
+                         "plot": "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.",
+                         "released": true
+                       }
+                     }
+    Code: 200
+        Status: Success
+
+    Code 404
+        Status: Failure
+        data: "no movie found with id"
+
+3. Create a Movie Item
+Endpoint: /movie
+    Method: "POST"
+    Headers: { Content-Type: application.json }
+    Authentication: Nil
+    Request Model: {
+                       "name": "Imitation Game 2",
+                       "genre": "Thriller",
+                       "rating": "4.0",
+                       "plot": "new plot here",
+                       "released": true
+                   }
+    Response Model: {
+                      "code": int,
+                      "status": string,
+                      "data": {
+                        "id": string,
+                        "name": string,
+                        "genre": string,
+                        "rating": string,
+                        "plot": string,
+                        "released": bool
+                      }
+                    }
+    Sample Response: {
+                       "code": 200,
+                       "status": "SUCCESS",
+                       "data": {
+                         "id": "503",
+                         "name": "Imitation Game 2",
+                         "genre": "Thriller",
+                         "rating": "4.0",
+                         "plot": "new plot here",
+                         "released": true
+                       }
+                     }
+    Code: 200
+        Status: Success
+
+    Code 404
+        Status: Failure
+        data: "no movie found with id"
+
+
+4. Edit a Movie Item
+Endpoint: /movie/{id}
+    Params: id
+    Method: "PUT"
+    Headers: { Content-Type: application.json }
+    Authentication: Nil
+    Request Model: {
+                       "name": "Imitation Game 2",
+                       "genre": "Thriller",
+                       "rating": "4.5",
+                       "plot": "again a new plot",
+                       "released": true
+                   }
+    Response Model: {
+                      "code": int,
+                      "status": string,
+                      "data": {
+                        "id": string,
+                        "name": string,
+                        "genre": string,
+                        "rating": string,
+                        "plot": string,
+                        "released": bool
+                      }
+                    }
+    Sample Response: {
+                       "code": 200,
+                       "status": "SUCCESS",
+                       "data": {
+                         "id": "503",
+                         "name": "Imitation Game 2",
+                         "genre": "Thriller",
+                         "rating": "4.5",
+                         "plot": "again a new plot",
+                         "released": true
+                       }
+                     }
+    Code: 200
+        Status: Success
+
+    Code 404
+        Status: Failure
+        data: "no movie found with id"
+
+5. Delete a Movie Item
+Endpoint: /movie/{id}
+    Params: id
+    Method: "DELETE"
+    Headers: { Content-Type: application.json }
+    Authentication: Nil
+    Response Model: {
+                        "code": int,
+                        "status": string,
+                        "data": string
+                    }
+    Sample Response: {
+                         "code":200,
+                         "status":"SUCCESS",
+                         "data":"Movie deleted successfully."
+                      }
+    Code: 200
+        Status: Success
+
+    Code 404
+        Status: Failure
+        data: "no movie found with id"

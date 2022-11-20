@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	_ "github.com/pdrum/swagger-automation/docs"
 	"github.com/varuns-zop/movie/Controllers"
 )
 

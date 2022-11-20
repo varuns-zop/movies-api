@@ -95,6 +95,7 @@ func DeleteMovieById(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
+	// Iterating through the movies to delete the movie of particular index
 	for index, movie := range movies {
 		if movie.Id == params["id"] {
 			movies = append(movies[:index], movies[index+1:]...)
@@ -102,5 +103,4 @@ func DeleteMovieById(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no movie found with id"})
 }
