@@ -7,10 +7,10 @@ type MovieDetails struct {
 }
 
 type Movie struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Genre    string `json:"genre"`
-	Rating   string `json:"rating"`
-	Plot     string `json:"plot"`
-	Released bool   `json:"released"`
+	Id       string  `json:"id"`
+	Name     string  `json:"name"`
+	Genre    string  `json:"genre"`
+	Rating   float64 `json:"rating"`
+	Plot     string  `json:"plot"`
+	Released bool    `json:"released"`
 }
