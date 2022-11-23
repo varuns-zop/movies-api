@@ -97,8 +97,10 @@ func TestEditMovieById(t *testing.T) {
 		parsed, err := json.Marshal(tt.expectedOutput)
 		checkNilError(err, t)
 
+		fmt.Println(string(data), string(parsed))
+
 		if string(data[:len(data)-1]) != string(parsed) {
-			t.Errorf("expected %v got %v", string(parsed), string(data[:len(data)-1]))
+			t.Errorf("expected %v got %v", string(parsed), string(data))
 		} else {
 			fmt.Println("PUT METHOD -> Testcase ", i+1, ": PASSED ✓")
 		}
@@ -140,7 +142,6 @@ func TestGetAllMovies(t *testing.T) {
 		} else {
 			fmt.Println("GET METHOD -> Testcase ", i+1, ": PASSED ✓")
 		}
-
 	}
 }
 
@@ -200,7 +201,7 @@ func TestGetSingleMovieById(t *testing.T) {
 	for i, tt := range testcase {
 		data, _ := json.Marshal(tt.body)
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest("PUT", "/movie", bytes.NewReader(data))
+		r := httptest.NewRequest("GET", "/movie", bytes.NewReader(data))
 
 		params := map[string]string{
 			"id": "10",

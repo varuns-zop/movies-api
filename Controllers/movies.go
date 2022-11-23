@@ -2,58 +2,57 @@ package Controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
 	"github.com/varuns-zop/movie/Middlewares"
 	"github.com/varuns-zop/movie/Models"
 )
 
-var movies []Models.Movie
-
-func PopulateMovieData() {
-	movies = append(movies, Models.Movie{Id: "10", Name: "Silicon valley", Genre: "Comedy", Rating: 4.5, Plot: "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.", Released: true})
-	movies = append(movies, Models.Movie{Id: "323", Name: "Independence Day", Genre: "Sci-Fi", Rating: 4.9, Plot: "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.", Released: true})
-	movies = append(movies, Models.Movie{Id: "543", Name: "Imitation Game", Genre: "Thriller", Rating: 4.1, Plot: "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.", Released: true})
-	movies = append(movies, Models.Movie{Id: "112", Name: "Into the Woods", Genre: "Horror", Rating: 4.9, Plot: "Richard, a programmer, creates an app called the Pied Piper and tries to get\ninvestors for it. Meanwhile, five other programmers struggle to make their mark in Silicon\nValley.", Released: true})
+type storeConnector struct {
+	store Middlewares.StoreHandler
 }
 
-func GetAllMovies(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(movies)
-	Middlewares.CheckNillError(err)
+func Connect(s Middlewares.StoreHandler) *storeConnector {
+	return &storeConnector{store: s}
 }
 
-func GetSingleMovieById(w http.ResponseWriter, r *http.Request) {
+func (c *storeConnector) GetALLMovies(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
-	// getting the query parameter from the url endpoint
-	params := mux.Vars(r)
-
-	for _, movie := range movies {
-		if movie.Id == params["id"] {
-			res := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &movie}
-			err := json.NewEncoder(w).Encode(res)
-			Middlewares.CheckNillError(err)
-			return
-		}
+	data, err := c.store.GetALlMovies()
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no data found"})
+		Middlewares.CheckNillError(err)
+		return
 	}
-	err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no movie found with id"})
+
+	err = json.NewEncoder(w).Encode(data)
 	Middlewares.CheckNillError(err)
+	return
 }
 
-func AddingMovie(w http.ResponseWriter, r *http.Request) {
+func (c *storeConnector) AddingMovie(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
 	// Checking if request body is nil or not
+	fmt.Println(r.Body)
+
 	if r.Body == nil {
 		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no request body found"})
 		Middlewares.CheckNillError(err)
+		return
 	}
 
 	//Decoding the request data with struct type movie and checking if it is nil or not
 	var movie Models.Movie
 	_ = json.NewDecoder(r.Body).Decode(&movie)
+
 	if movie.IsEmpty() {
 		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no data found in json"})
 		Middlewares.CheckNillError(err)
@@ -61,54 +60,83 @@ func AddingMovie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// creating the random value for movie id to be randomly created at a time
-	//rand.Seed(time.Now().UnixNano())
-	//movie.Id = strconv.Itoa(rand.Intn(1000))
-	movie.Id = "10"
-	movies = append(movies, movie)
 
-	// sending back the response with newly created movie
-	res := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &movie}
-	err := json.NewEncoder(w).Encode(res)
+	data, err := c.store.CreateMovie(movie)
+	if err != nil {
+		json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no request body found"})
+	}
+	response := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &data}
+	err = json.NewEncoder(w).Encode(response)
 	Middlewares.CheckNillError(err)
 	return
 }
 
-func EditMovieById(w http.ResponseWriter, r *http.Request) {
+func (c *storeConnector) EditMovieById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	// Checking if request body is nil or not
+	if r.Body == nil {
+		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no request body found"})
+		Middlewares.CheckNillError(err)
+		return
+	}
+
+	//Decoding the request data with struct type movie and checking if it is nil or not
+	var movie Models.Movie
+	_ = json.NewDecoder(r.Body).Decode(&movie)
+
+	if movie.IsEmpty() {
+		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no data found in json"})
+		Middlewares.CheckNillError(err)
+		return
+	}
 
 	params := mux.Vars(r)
 
-	for index, movie := range movies {
-		if movie.Id == params["id"] {
-			movies = append(movies[:index], movies[index+1:]...)
-			var movie Models.Movie
-			_ = json.NewDecoder(r.Body).Decode(&movie)
-			movie.Id = params["id"]
-			movies = append(movies, movie)
-			res := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &movie}
-			err := json.NewEncoder(w).Encode(res)
-			Middlewares.CheckNillError(err)
-			return
-		}
+	data, err := c.store.UpdateMovieByID(movie, params)
+	response := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &data}
+	if err != nil {
+		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "Invalid"})
+		Middlewares.CheckNillError(err)
+		return
 	}
-	err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "Id Not found"})
+
+	err = json.NewEncoder(w).Encode(response)
 	Middlewares.CheckNillError(err)
 	return
-
 }
 
-func DeleteMovieById(w http.ResponseWriter, r *http.Request) {
+func (c *storeConnector) DeleteMovieById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
 
-	// Iterating through the movies to delete the movie of particular index
-	for index, movie := range movies {
-		if movie.Id == params["id"] {
-			movies = append(movies[:index], movies[index+1:]...)
-			err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 200, Status: "SUCCESS", Data: "Movie deleted successfully."})
-			Middlewares.CheckNillError(err)
-			break
-		}
+	data, errorS := c.store.DeleteMovieByID(params)
+	if errorS != nil {
+		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "Id Not Found"})
+		Middlewares.CheckNillError(err)
+		return
 	}
+
+	err := json.NewEncoder(w).Encode(data)
+	Middlewares.CheckNillError(err)
+	return
 }
+
+//func (h *Middlewares.Handler) GetSingleMovieById(w http.ResponseWriter, r *http.Request) {
+//	w.Header().Set("Content-Type", "application/json")
+//
+//	// getting the query parameter from the url endpoint
+//	params := mux.Vars(r)
+//
+//	for _, movie := range movies {
+//		if movie.Id == params["id"] {
+//			res := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &movie}
+//			err := json.NewEncoder(w).Encode(res)
+//			Middlewares.CheckNillError(err)
+//			return
+//		}
+//	}
+//	err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no movie found with id"})
+//	Middlewares.CheckNillError(err)
+//}

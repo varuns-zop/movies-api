@@ -3,6 +3,7 @@ module github.com/varuns-zop/movie
 go 1.19
 
 require (
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gorilla/mux v1.8.0
 	github.com/pdrum/swagger-automation v0.0.0-20190629163613-c8c7c80ba858
 )
