@@ -1,10 +1,12 @@
-package Middlewares
+package movie
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/varuns-zop/movie/Models"
+	"github.com/varuns-zop/movie/Middlewares"
+
+	"github.com/varuns-zop/movie/Internal/models"
 
 	"github.com/DATA-DOG/go-sqlmock"
 )
@@ -14,15 +16,15 @@ func TestStoreCreateMovie(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 
 	var testcases = []struct {
-		expectedOutput Models.Movie
+		expectedOutput models.Movie
 		expectedError  interface{}
-		body           Models.Movie
+		body           models.Movie
 		mockQuerry     []interface{}
 	}{
 		{
-			expectedOutput: Models.Movie{Id: "1", Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
+			expectedOutput: models.Movie{Id: "1", Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
 			expectedError:  nil,
-			body:           Models.Movie{Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
+			body:           models.Movie{Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
 			mockQuerry: []interface{}{
 				mock.ExpectExec("CREATE TABLE IF NOT EXISTS Movies (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), genre VARCHAR(255), rating FLOAT, plot VARCHAR(255), released INT);").
 					WillReturnResult(sqlmock.NewResult(1, 1)),
@@ -37,7 +39,7 @@ func TestStoreCreateMovie(t *testing.T) {
 		},
 	}
 
-	CheckError(err, t)
+	Middlewares.CheckError(err, t)
 
 	handler := New(db)
 
@@ -55,15 +57,15 @@ func TestStoreCreateMovie(t *testing.T) {
 func TestStoreGetALlMovies(t *testing.T) {
 	db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	var testcases = []struct {
-		expectedOutput []Models.Movie
+		expectedOutput []models.Movie
 		expectedError  interface{}
 		mockQuerry     []interface{}
 	}{
 		{
-			expectedOutput: []Models.Movie{
-				Models.Movie{Id: "1", Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
-				Models.Movie{Id: "2", Name: "Ra.One", Genre: "Sci-Fi", Rating: 4.0, Plot: "Science Fiction and Humans", Released: true},
-				Models.Movie{Id: "3", Name: "Harry Potter & The Cursed Child", Genre: "Fantasy", Rating: 0.0, Plot: "Witchcraft and Wizardry", Released: false},
+			expectedOutput: []models.Movie{
+				models.Movie{Id: "1", Name: "Dangal", Genre: "BioPic", Rating: 4.5, Plot: "Wrestling for Women", Released: true},
+				models.Movie{Id: "2", Name: "Ra.One", Genre: "Sci-Fi", Rating: 4.0, Plot: "Science Fiction and Humans", Released: true},
+				models.Movie{Id: "3", Name: "Harry Potter & The Cursed Child", Genre: "Fantasy", Rating: 0.0, Plot: "Witchcraft and Wizardry", Released: false},
 			},
 			expectedError: nil,
 			mockQuerry: []interface{}{
@@ -76,7 +78,7 @@ func TestStoreGetALlMovies(t *testing.T) {
 		},
 	}
 
-	CheckError(err, t)
+	Middlewares.CheckError(err, t)
 
 	handler := New(db)
 
@@ -85,7 +87,7 @@ func TestStoreGetALlMovies(t *testing.T) {
 		if err != nil {
 			t.Errorf("testcase %v FAILED - Reason: %s", i, err.Error())
 		}
-		CheckDeepEqual(result, tt.expectedOutput, i, t)
+		Middlewares.CheckDeepEqual(result, tt.expectedOutput, i, t)
 	}
 }
 
@@ -94,14 +96,14 @@ func TestStoreUpdateMovieByID(t *testing.T) {
 	var testcases = []struct {
 		expectedOutput interface{}
 		expectedError  interface{}
-		body           Models.Movie
+		body           models.Movie
 		mockQuerry     []interface{}
 		params         string
 	}{
 		{
 			expectedError:  nil,
-			expectedOutput: Models.Movie{Id: "12", Name: "Harry Potter", Genre: "Movie", Rating: 4.3, Plot: "New Plot", Released: true},
-			body:           Models.Movie{Genre: "Movie", Rating: 4.3, Plot: "New Plot", Released: true},
+			expectedOutput: models.Movie{Id: "12", Name: "Harry Potter", Genre: "Movie", Rating: 4.3, Plot: "New Plot", Released: true},
+			body:           models.Movie{Genre: "Movie", Rating: 4.3, Plot: "New Plot", Released: true},
 			mockQuerry: []interface{}{
 				mock.ExpectQuery("UPDATE  Movies SET released=?,rating=?,plot=?,genre=? WHERE id = (?)").
 					WithArgs(true, 4.3, "New Plot", "Movie", "12").
@@ -118,7 +120,7 @@ func TestStoreUpdateMovieByID(t *testing.T) {
 		},
 	}
 
-	CheckError(err, t)
+	Middlewares.CheckError(err, t)
 
 	handler := New(db)
 
@@ -126,8 +128,8 @@ func TestStoreUpdateMovieByID(t *testing.T) {
 		param := make(map[string]string)
 		param["id"] = tt.params
 		result, err := handler.UpdateMovieByID(tt.body, param)
-		CheckError(err, t)
-		CheckDeepEqual(result, tt.expectedOutput, i, t)
+		Middlewares.CheckError(err, t)
+		Middlewares.CheckDeepEqual(result, tt.expectedOutput, i, t)
 	}
 }
 
@@ -136,13 +138,13 @@ func TestStoreDeleteMovieByID(t *testing.T) {
 	var testcases = []struct {
 		expectedOutput interface{}
 		expectedError  interface{}
-		body           Models.Movie
+		body           models.Movie
 		mockQuerry     []interface{}
 		params         string
 	}{
 		{
 			expectedError:  nil,
-			expectedOutput: Models.GenericResponse{Code: 200, Status: "SUCCESS", Data: "Movie deleted successfully."},
+			expectedOutput: models.GenericResponse{Code: 200, Status: "SUCCESS", Data: "Movie deleted successfully."},
 			mockQuerry: []interface{}{
 				mock.ExpectQuery("DELETE FROM Movies WHERE id = (?)").
 					WithArgs("12").WillReturnRows(sqlmock.NewRows([]string{})),
@@ -150,7 +152,7 @@ func TestStoreDeleteMovieByID(t *testing.T) {
 			params: "12",
 		},
 		{
-			expectedError:  Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "ID Not Found."},
+			expectedError:  models.GenericResponse{Code: 404, Status: "FAILURE", Data: "ID Not Found."},
 			expectedOutput: nil,
 			mockQuerry: []interface{}{
 				mock.ExpectQuery("DELETE FROM Movies WHERE id = (?)").
@@ -172,13 +174,13 @@ func TestStoreDeleteMovieByID(t *testing.T) {
 		result, err := handler.DeleteMovieByID(param)
 
 		if tt.expectedError != nil {
-			CheckDeepEqual(result, tt.expectedError, i, t)
+			Middlewares.CheckDeepEqual(result, tt.expectedError, i, t)
 		} else {
-			CheckError(err, t)
+			Middlewares.CheckError(err, t)
 		}
 
 		if tt.expectedOutput != nil {
-			CheckDeepEqual(result, tt.expectedOutput, i, t)
+			Middlewares.CheckDeepEqual(result, tt.expectedOutput, i, t)
 		}
 	}
 }
