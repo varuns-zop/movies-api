@@ -33,7 +33,6 @@ func main() {
 	Route := mux.NewRouter()
 
 	handler := Middlewares.New(db)
-
 	controllHandler := Controllers.Connect(handler)
 
 	Route.HandleFunc("/movies", controllHandler.GetALLMovies).Methods("GET")

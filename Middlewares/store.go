@@ -36,7 +36,8 @@ func (s *Store) CreateMovie(movie Models.Movie) (Models.Movie, error) {
 		return m, errors.New(e.Error())
 	}
 
-	data := s.db.QueryRowContext(context.Background(), "SELECT id,name,released,rating,plot,genre FROM Movies WHERE id = (?)", id)
+	data := s.db.QueryRowContext(context.Background(), "SELECT id,name,released,rating,plot,genre FROM Movies WHERE id = ?", id)
+
 	if errS := data.Scan(&m.Id, &m.Name, &m.Released, &m.Rating, &m.Plot, &m.Genre); errS != nil {
 		fmt.Errorf("scan error %v", errS.Error())
 	}
@@ -56,6 +57,7 @@ func (s *Store) UpdateMovieByID(movie Models.Movie, params map[string]string) (M
 
 	if errS := data.Scan(&m.Id, &m.Name, &m.Released, &m.Rating, &m.Plot, &m.Genre); errS != nil {
 		fmt.Errorf("scan error %v", errS.Error())
+		return m, errS
 	}
 
 	return m, nil
@@ -64,6 +66,7 @@ func (s *Store) UpdateMovieByID(movie Models.Movie, params map[string]string) (M
 func (s *Store) DeleteMovieByID(params map[string]string) (Models.GenericResponse, error) {
 
 	_, errorS := s.db.QueryContext(context.Background(), "DELETE FROM Movies WHERE id = (?)", params["id"])
+
 	if errorS != nil {
 		return Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "ID Not Found."}, errors.New(errorS.Error())
 	}

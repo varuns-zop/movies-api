@@ -2,7 +2,6 @@ package Controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -41,8 +40,6 @@ func (c *storeConnector) AddingMovie(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Checking if request body is nil or not
-	fmt.Println(r.Body)
-
 	if r.Body == nil {
 		err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no request body found"})
 		Middlewares.CheckNillError(err)
@@ -122,21 +119,3 @@ func (c *storeConnector) DeleteMovieById(w http.ResponseWriter, r *http.Request)
 	Middlewares.CheckNillError(err)
 	return
 }
-
-//func (h *Middlewares.Handler) GetSingleMovieById(w http.ResponseWriter, r *http.Request) {
-//	w.Header().Set("Content-Type", "application/json")
-//
-//	// getting the query parameter from the url endpoint
-//	params := mux.Vars(r)
-//
-//	for _, movie := range movies {
-//		if movie.Id == params["id"] {
-//			res := Models.MovieDetails{Code: 200, Status: "SUCCESS", Data: &movie}
-//			err := json.NewEncoder(w).Encode(res)
-//			Middlewares.CheckNillError(err)
-//			return
-//		}
-//	}
-//	err := json.NewEncoder(w).Encode(Models.GenericResponse{Code: 404, Status: "FAILURE", Data: "no movie found with id"})
-//	Middlewares.CheckNillError(err)
-//}
