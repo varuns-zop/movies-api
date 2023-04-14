@@ -1,0 +1,61 @@
+name: Test Service CI-CD
+'on':
+  push:
+    branches:
+      - master
+      - development
+  pull_request:
+    branches:
+      - master
+      - development
+jobs:
+  test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+        
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: 'go.mod'
+        cache-dependency-path: go.sum
+
+    - name: Get dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libmcrypt-dev
+        go get -v -t -d ./...
+
+    - name: Test
+      run: |
+        mkdir -p build/test
+        go test ./... -v -coverprofile build/test/coverage.out -coverpkg=./...
+        cat build/test/coverage.out | grep -vE 'mock_interfaces|migrations|main' > build/test/coverage.txt
+        go tool cover -func build/test/coverage.txt
+
+    - name: Parse code-coverage value
+      run: |
+        codeCoverage=$(go tool cover -func=build/test/coverage.txt | grep total | awk '{print $3}')
+        codeCoverage=${codeCoverage%?}
+        echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+        echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+          
+    - name: Add change in coverage as comment
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v4
+      with:
+        script: >
+          diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} |
+          bc)
+          github.issues.createComment({
+          issue_number: ${{ github.event.number }},
+          owner: '${{ github.repository_owner }}',
+          repo: '${{ github.event.repository.name }}',
+          body: 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current
+          Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage =
+          ${diff}%'
+              })
+      env:
+        GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
