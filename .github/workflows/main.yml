@@ -1,61 +1,91 @@
-name: Test Service CI-CD
-'on':
+name: Rewards Service CI-CD
+on:
   push:
-    branches:
+    branches: 
       - master
       - development
   pull_request:
     branches:
-      - master
+      - main
       - development
+      - master
+    
+defaults:
+  run:
+    shell: bash
 jobs:
-  test:
+   code_quality:
+     name: Code Quality
+     runs-on: ubuntu-latest
+     container: golangci/golangci-lint:v1.42.1
+     steps:
+       - name: Check out code into the Go module directory
+         uses: actions/checkout@v2
+
+       - name: Set up Go
+         uses: actions/setup-go@v4
+         with:
+           go-version-file: 'go.mod'
+           cache-dependency-path: go.sum
+
+       - name: GolangCI-Lint
+         run: |
+           go get -v -t -d ./...
+           golangci-lint run -v --timeout 3m0s
+
+   test:
     name: Test and Build
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-        
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version-file: 'go.mod'
-        cache-dependency-path: go.sum
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Get dependencies
-      run: |
-        sudo apt-get update -y
-        sudo apt-get install -y libmcrypt-dev
-        go get -v -t -d ./...
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: go.sum
 
-    - name: Test
-      run: |
-        mkdir -p build/test
-        go test ./... -v -coverprofile build/test/coverage.out -coverpkg=./...
-        cat build/test/coverage.out | grep -vE 'mock_interfaces|migrations|main' > build/test/coverage.txt
-        go tool cover -func build/test/coverage.txt
+      - name: Get dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libmcrypt-dev
+          go get -v -t -d ./...
 
-    - name: Parse code-coverage value
-      run: |
-        codeCoverage=$(go tool cover -func=build/test/coverage.txt | grep total | awk '{print $3}')
-        codeCoverage=${codeCoverage%?}
-        echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
-        echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
-          
-    - name: Add change in coverage as comment
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v4
-      with:
-        script: >
-          diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} |
-          bc)
-          github.issues.createComment({
-          issue_number: ${{ github.event.number }},
-          owner: '${{ github.repository_owner }}',
-          repo: '${{ github.event.repository.name }}',
-          body: 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current
-          Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage =
-          ${diff}%'
-              })
-      env:
-        GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      - name: Test
+        run: |
+          mkdir -p build/test
+          go test ./... -v -coverprofile build/test/coverage.out -coverpkg=./...
+          cat build/test/coverage.out | grep -vE 'mock_interfaces|migrations|main' > build/test/coverage.txt
+          go tool cover -func build/test/coverage.txt
+
+      - name: Parse code-coverage value
+        run: |
+          codeCoverage=$(go tool cover -func=build/test/coverage.txt | grep total | awk '{print $3}')
+          codeCoverage=${codeCoverage%?}
+          echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+          echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+
+      - name: Check if code-coverage is greater than threshold
+        run: |
+          codeCoverage=${{ env.CODE_COVERAGE }}
+          codeCoverage=${codeCoverage%??}
+          if [[ $codeCoverage -lt 95 ]]; then echo "code coverage cannot be less than 95%, currently its ${{ env.CODE_COVERAGE }}%" && exit 1; fi;
+
+      - name: Add change in coverage as comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v4
+        with:
+          script: >
+            diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} |
+            bc)
+            github.issues.createComment({
+            issue_number: ${{ github.event.number }},
+            owner: '${{ github.repository_owner }}',
+            repo: '${{ github.event.repository.name }}',
+            body: 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current
+            Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage =
+            ${diff}%'
+                })
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
