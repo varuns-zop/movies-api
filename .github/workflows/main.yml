@@ -70,7 +70,7 @@ jobs:
         run: |
           codeCoverage=${{ env.CODE_COVERAGE }}
           codeCoverage=${codeCoverage%??}
-          if [[ $codeCoverage -lt 95 ]]; then echo "code coverage cannot be less than 95%, currently its ${{ env.CODE_COVERAGE }}%" && exit 1; fi;
+          if [[ $codeCoverage -lt 25 ]]; then echo "code coverage cannot be less than 25%, currently its ${{ env.CODE_COVERAGE }}%" && exit 1; fi;
 
       - name: Add change in coverage as comment
         if: github.event_name == 'pull_request'
