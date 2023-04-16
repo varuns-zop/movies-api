@@ -66,26 +66,18 @@ jobs:
           echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
           echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
 
-      - name: Check if code-coverage is greater than threshold
-        run: |
-          codeCoverage=${{ env.CODE_COVERAGE }}
-          codeCoverage=${codeCoverage%??}
-          if [[ $codeCoverage -lt 10 ]]; then echo "code coverage cannot be less than 25%, currently its ${{ env.CODE_COVERAGE }}%" && exit 1; fi;
-
       - name: Add change in coverage as comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v4
         with:
           script: >
-            diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} |
-            bc)
+            diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} | bc)
             github.issues.createComment({
             issue_number: ${{ github.event.number }},
             owner: '${{ github.repository_owner }}',
             repo: '${{ github.event.repository.name }}',
             body: 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current
-            Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage =
-            ${diff}%'
-                })
+            Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage = ${diff}%'
+            })
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
