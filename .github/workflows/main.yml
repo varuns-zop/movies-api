@@ -55,7 +55,7 @@ jobs:
             const name = '${{ github.workflow   }}';
             const url = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
             const success = '${{ job.status }}' === 'success';
-            const body = `${name}: ${success ? 'succeeded ✅' : 'failed ❌'}\n${url}`;
+            const body = 'Current Coverage = ${{ env.CODE_COVERAGE }}%';
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
