@@ -65,19 +65,17 @@ jobs:
           codeCoverage=${codeCoverage%?}
           echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
           echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
-
+          
       - name: Add change in coverage as comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v4
         with:
-          script: >
-            diff=$(echo ${{ env.CODE_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }} | bc)
+          script: |
             github.issues.createComment({
             issue_number: ${{ github.event.number }},
             owner: '${{ github.repository_owner }}',
             repo: '${{ github.event.repository.name }}',
-            body: 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current
-            Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage = ${diff}%'
+            body: 'Current Coverage = ${{ env.CODE_COVERAGE }}%
             })
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
