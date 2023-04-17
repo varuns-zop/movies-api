@@ -50,18 +50,14 @@ jobs:
         id: update_env_var
         run: |
           if [ -z "${{ env.PREVIOUS_COVERAGE }}" ]; then
-            export UPDATED_PREV_COVERAGE=0
             echo "PREVIOUS_COVERAGE=0" >> $GITHUB_ENV
           else
-            export UPDATED_PREV_COVERAGE="${{ env.PREVIOUS_COVERAGE }}"
             echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
           fi
           
-          echo "::set-output name=updated_value::${UPDATED_PREV_COVERAGE}"
-          
       - name: Use updated environment variable
         run: |
-          diff=$(echo "${{ env.CURRENT_COVERAGE }} - ${{ steps.update_env_var.outputs.updated_value }}" | bc)
+          diff=$(echo "${{ env.CURRENT_COVERAGE }} - ${{ env.PREVIOUS_COVERAGE }}" | bc)
           echo "COVERAGE_DIFF=$diff" >> $GITHUB_ENV
 
       - name: Add comment to PR
@@ -82,4 +78,4 @@ jobs:
             })
       - name: Save Previous Coverage to github env
         run: |
-          echo "PREVIOUS_COVERAGE=${{ env.PREVIOUS_COVERAGE }}" >> $GITHUB_ENV
+          echo "PREVIOUS_COVERAGE=${{ env.CURRENT_COVERAGE }}" >> $GITHUB_ENV
