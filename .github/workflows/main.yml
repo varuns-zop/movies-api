@@ -57,8 +57,7 @@ jobs:
       - name: Use updated environment variable
         run: |
           echo "Previous Coverage: ${{ steps.update_env_var.outputs.updated_value }}%"
-          diff=$((CODE_COVERAGE - steps.update_env_var.outputs.updated_value))
-          echo "Change in coverage: ${{diff}}%"
+          echo "Change in coverage: ${{env.CODE_COVERAGE}} - ${{ steps.update_env_var.outputs.updated_value }}%"
           # Do something with the updated environment variable
 
       - name: Add comment to PR
