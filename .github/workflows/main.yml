@@ -51,8 +51,10 @@ jobs:
         run: |
           if [ -z "${{ env.PREVIOUS_COVERAGE }}" ]; then
             echo "PREVIOUS_COVERAGE=0" >> $GITHUB_ENV
+            echo "Inside IF"
           else
             echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
+            echo "Inside ELSE"
           fi
           
       - name: Use updated environment variable
