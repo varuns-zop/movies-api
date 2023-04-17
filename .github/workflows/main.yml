@@ -50,12 +50,13 @@ jobs:
         id: update_env_var
         run: |
           if [ -z "${{ env.PREVIOUS_COVERAGE }}" ]; then
+            export UPDATED_PREV_COVERAGE=0
             echo "PREVIOUS_COVERAGE=0" >> $GITHUB_ENV
-            export UPDATED_PREV_COVERAGE=${{ env.PREVIOUS_COVERAGE }}
           else
+            export UPDATED_PREV_COVERAGE="${{ env.PREVIOUS_COVERAGE }}"
             echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
-            export UPDATED_PREV_COVERAGE=${{ env.PREVIOUS_COVERAGE }}
           fi
+          
           echo "::set-output name=updated_value::${UPDATED_PREV_COVERAGE}"
           
       - name: Use updated environment variable
