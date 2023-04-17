@@ -52,10 +52,12 @@ jobs:
         run: |
           echo "Existing environment variable: ${{ env.PREVIOUS_COVERAGE }}"
           export UPDATED_VAR="90"
-          echo "::set-output name=updated_value::${{ env.PREVIOUS_COVERAGE }}:${UPDATED_VAR}}"
+          echo "::set-output name=updated_value::${UPDATED_VAR}}"
       - name: Use updated environment variable
         run: |
-          echo "Updated environment variable: ${{ steps.update_env_var.outputs.updated_value }}"
+          echo "Previous Coverage: ${{ steps.update_env_var.outputs.updated_value }}%"
+          diff=$((CODE_COVERAGE - steps.update_env_var.outputs.updated_value))
+          echo "Change in coverage: ${{diff}}%"
           # Do something with the updated environment variable
 
       - name: Add comment to PR
