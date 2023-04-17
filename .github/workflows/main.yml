@@ -44,19 +44,23 @@ jobs:
         run: |
           codeCoverage=$(go tool cover -func=build/test/coverage.txt | grep total | awk '{print $3}')
           codeCoverage=${codeCoverage%?}
-          echo "CODE_COVERAGE=$codeCoverage" >> $GITHUB_ENV
-          echo "PREVIOUS_COVERAGE=$codeCoverage" >> $GITHUB_ENV
+          echo "CURRENT_COVERAGE=$codeCoverage" >> $GITHUB_ENV
 
       - name: Update existing environment variable
         id: update_env_var
         run: |
-          echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
-          export UPDATED_COVERAGE="90"
+          if [ -z "${{ env.PREVIOUS_COVERAGE }}" ]; then
+            echo "PREVIOUS_COVERAGE=0" >> $GITHUB_ENV
+          else
+            echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
+          fi
+          
+          export UPDATED_COVERAGE=${{ env.PREVIOUS_COVERAGE }}
           echo "::set-output name=updated_value::${UPDATED_COVERAGE}"
           
       - name: Use updated environment variable
         run: |
-          diff=$(echo "${{ env.PREVIOUS_COVERAGE }} - ${{ steps.update_env_var.outputs.updated_value }}" | bc)
+          diff=$(echo "${{ env.CURRENT_COVERAGE }} - ${{ steps.update_env_var.outputs.updated_value }}" | bc)
           echo "COVERAGE_DIFF=$diff" >> $GITHUB_ENV
 
       - name: Add comment to PR
@@ -67,7 +71,7 @@ jobs:
             const name = '${{ github.workflow   }}';
             const url = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
             const success = '${{ job.status }}' === 'success';
-            const body = 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current Coverage = ${{ env.CODE_COVERAGE }}%, Change in code coverage = ${{ env.COVERAGE_DIFF }}%'
+            const body = 'Previous Coverage = ${{ env.PREVIOUS_COVERAGE }}%, Current Coverage = ${{ env.CURRENT_COVERAGE }}%, Change in code coverage = ${{ env.COVERAGE_DIFF }}%'
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -75,3 +79,6 @@ jobs:
               repo: context.repo.repo,
               body: body
             })
+      - name: Save Previous Coverage to github env
+        run: |
+          echo "PREVIOUS_COVERAGE=${{ env.PREVIOUS_COVERAGE }}" >> $GITHUB_ENV
