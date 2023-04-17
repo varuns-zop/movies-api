@@ -78,4 +78,4 @@ jobs:
             })
       - name: Save Previous Coverage to github env
         run: |
-          echo "PREVIOUS_COVERAGE=${{ env.CURRENT_COVERAGE }}" >> $GITHUB_ENV
+         echo "PREVIOUS_COVERAGE=${{ env.CURRENT_COVERAGE }}" >> $GITHUB_ENV
