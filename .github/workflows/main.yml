@@ -51,7 +51,7 @@ jobs:
         id: update_env_var
         run: |
           echo "Previous Coverage: ${{ env.PREVIOUS_COVERAGE }}"
-          export UPDATED_COVERAGE: "90"
+          export UPDATED_COVERAGE="90"
           echo "::set-output name=updated_value::${UPDATED_COVERAGE}}"
           
       - name: Use updated environment variable
