@@ -56,9 +56,8 @@ jobs:
           
       - name: Use updated environment variable
         run: |
-          diff=$(( ${{ env.CODE_COVERAGE }} - ${{ steps.update_env_var.outputs.updated_value }} ))
-          echo "::set-env name=DIFF::$diff"
-          echo "Change in Coverage is ${{ env.DIFF }}"
+          diff=$(echo "${{ env.PREVIOUS_COVERAGE }} - $${{ steps.update_env_var.outputs.updated_value }}" | bc)
+          echo "Change in Coverage: $diff%"
 
       - name: Add comment to PR
         uses: actions/github-script@v6
