@@ -1,4 +1,4 @@
-package Models
+package models
 
 type GenericResponse struct {
 	Code   int    `json:"code"`

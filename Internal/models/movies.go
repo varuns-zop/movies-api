@@ -1,4 +1,4 @@
-package Models
+package models
 
 type MovieDetails struct {
 	Code   int    `json:"code"`
@@ -13,4 +13,11 @@ type Movie struct {
 	Rating   float64 `json:"rating"`
 	Plot     string  `json:"plot"`
 	Released bool    `json:"released"`
+}
+
+func (c *Movie) IsEmpty() bool {
+	if c == nil {
+		return true
+	}
+	return false
 }
